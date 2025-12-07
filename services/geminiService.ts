@@ -87,7 +87,7 @@ const FALLBACK_RECIPES = [
 
 export const generateRecipes = async (ingredients: string[], preferences: RecipePreferences): Promise<Recipe[]> => {
   if (ingredients.length === 0) return [];
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
   let preferencesPrompt = "";
   
   // Existing Preferences
@@ -126,6 +126,7 @@ export const generateRecipes = async (ingredients: string[], preferences: Recipe
   העדפות המשתמש: ${preferencesPrompt}.`;
 
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
@@ -149,7 +150,7 @@ export const generateRecipes = async (ingredients: string[], preferences: Recipe
     if (error?.status === 429 || error?.code === 429 || error?.message?.includes('429')) {
         console.warn("Gemini Quota Exceeded. Using fallback recipes.");
     } else {
-        console.error("Error generating recipes:", error);
+        console.error("Error generating recipes (possibly missing API key or network issue):", error);
     }
     
     // Return fallback recipes instead of throwing
@@ -164,7 +165,6 @@ export const generateRecipes = async (ingredients: string[], preferences: Recipe
 };
 
 export const regenerateRecipeWithoutIngredients = async (originalRecipe: Recipe, missingIngredients: string): Promise<Recipe> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const singleRecipeSchema: Schema = {
     type: Type.OBJECT,
     properties: recipeSchema.items!.properties,
@@ -174,6 +174,7 @@ export const regenerateRecipeWithoutIngredients = async (originalRecipe: Recipe,
   const prompt = `המשתמש רוצה להכין את המנה האמיתית "${originalRecipe.title}" אבל חסרים לו המצרכים הבאים: "${missingIngredients}". אנא צור גרסה חדשה ומתוקנת של המתכון ללא המצרכים החסרים (מצא תחליפים כשרים או התאם את המתכון). שמור על האותנטיות של המנה ככל האפשר.`;
 
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
@@ -200,8 +201,8 @@ export const regenerateRecipeWithoutIngredients = async (originalRecipe: Recipe,
 };
 
 export const findYoutubeVideoForRecipe = async (recipeTitle: string): Promise<string | undefined> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: `Find a youtube video link that shows how to cook: ${recipeTitle}. Return ONLY the URL.`,
@@ -233,8 +234,8 @@ export const findYoutubeVideoForRecipe = async (recipeTitle: string): Promise<st
 };
 
 export const generateVideoForRecipe = async (recipeTitle: string, promptEn: string): Promise<string | undefined> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     let operation = await ai.models.generateVideos({
       model: 'veo-3.1-fast-generate-preview',
       prompt: `Cinematic cooking shot of ${promptEn || recipeTitle}, 4k, delicious food photography, slow motion`,
@@ -256,8 +257,8 @@ export const generateVideoForRecipe = async (recipeTitle: string, promptEn: stri
 };
 
 export const chatWithShefi = async (history: {role: string, parts: {text: string}[]}[], message: string) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const chat = ai.chats.create({
       model: 'gemini-2.5-flash',
       config: {
@@ -269,13 +270,13 @@ export const chatWithShefi = async (history: {role: string, parts: {text: string
     return result.text;
   } catch (error) {
     console.error("Chat error:", error);
-    return "אופס, אני קצת עייף כרגע (עומס מערכת). אפשר לנסות שוב עוד דקה?";
+    return "אופס, אני קצת עייף כרגע (עומס מערכת או בעיית חיבור). אפשר לנסות שוב עוד דקה?";
   }
 };
 
 export const generateCommentResponse = async (recipeTitle: string, userComment: string, userName: string): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const prompt = `המשתמש בשם "${userName}" הגיב על המתכון "${recipeTitle}": "${userComment}". 
     כתוב תגובה קצרה, חברותית, קצת הומוריסטית ואישית בשם "שפי" (שף וירטואלי). אל תהיה רשמי מדי.`;
     
@@ -292,8 +293,8 @@ export const generateCommentResponse = async (recipeTitle: string, userComment: 
 };
 
 export const generateDailyTip = async (): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const prompt = `תן לי "טיפ יומי" קצר, כללי ושימושי מאוד למטבח. 
     הטיפ חייב להיות:
     1. כשר לחלוטין (ללא שום אזכור לערבוב בשר וחלב).
