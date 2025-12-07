@@ -1,0 +1,5 @@
+{
+  "name": "Shefi",
+  "description": "A personal AI chef application that generates recipes based on ingredients, preferences, and dietary restrictions.",
+  "requestFramePermissions": []
+}
